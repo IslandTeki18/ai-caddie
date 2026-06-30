@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "ai-caddie",
+    "slug": "ai-caddie",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "ai-caddie",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
