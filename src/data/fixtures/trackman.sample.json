@@ -1,0 +1,22 @@
+{
+  "clubs": [
+    {
+      "club": "Driver",
+      "distanceYards": 268,
+      "dispersion": { "lateralYards": 22, "longYards": 12 },
+      "tendency": "stock fade"
+    },
+    {
+      "club": "7i",
+      "distanceYards": 165,
+      "dispersion": { "lateralYards": 8, "longYards": 6 },
+      "tendency": "slight pull under pressure"
+    },
+    {
+      "club": "PW",
+      "distanceYards": 128,
+      "dispersion": { "lateralYards": 5, "longYards": 5 },
+      "tendency": "spin-dependent"
+    }
+  ]
+}
