@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { deriveStatus, type SyncStatus } from '@/sync';
 import { convex } from './convex';
+import { PrimaryButton } from './components/ui';
 
 export default function HomeScreen() {
   return (
     <View className="flex-1 items-center justify-center bg-white px-6">
       <Text className="text-3xl font-semibold text-slate-900">AI Caddie</Text>
       <SyncBadge />
+      <View className="mt-10 w-full max-w-xs">
+        <PrimaryButton label="Start round" onPress={() => router.push('/setup')} />
+        <View className="h-2" />
+        <Text accessibilityRole="link" onPress={() => router.push('/profile')} className="text-center text-emerald-700">
+          Player profile
+        </Text>
+      </View>
     </View>
   );
 }
