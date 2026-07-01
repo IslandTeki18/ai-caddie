@@ -8,7 +8,7 @@ export default defineWorkspace([
     test: {
       name: 'node',
       environment: 'node',
-      include: ['src/**/*.test.ts', 'convex/**/*.test.ts', 'app/**/*.test.ts'],
+      include: ['src/**/*.test.ts', 'convex/**/*.test.ts'],
       // convex/sync.test.ts opts into the edge-runtime env via a file pragma.
       server: { deps: { inline: ['convex-test'] } },
     },
@@ -23,7 +23,7 @@ export default defineWorkspace([
     test: {
       name: 'components',
       environment: 'jsdom',
-      include: ['app/**/*.test.tsx'],
+      include: ['src/ui/**/*.test.tsx'],
     },
     resolve: {
       alias: { ...alias, 'react-native': 'react-native-web' },

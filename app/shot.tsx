@@ -9,8 +9,8 @@ import type {
   PinLocation,
 } from '@/core';
 import { nearestClub, type ApproachShotInput, type TeeShotInput } from '@/session';
-import { useSessionContext } from './session-provider';
-import { Field, PrimaryButton, Segmented } from './components/ui';
+import { useSessionContext } from '@/ui/session-provider';
+import { Field, PrimaryButton, Segmented } from '@/ui/components';
 
 const CONFIDENCE: readonly Confidence[] = ['low', 'medium', 'high'];
 const LIES: readonly Lie[] = ['tee', 'fairway', 'rough', 'sand'];

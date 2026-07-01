@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { ConvexProvider } from 'convex/react';
 import { convex } from './convex';
-import { SessionProvider } from './session-provider';
+import { SessionProvider } from '@/ui/session-provider';
 import '../global.css';
 
 export default function RootLayout() {

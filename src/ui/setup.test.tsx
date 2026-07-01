@@ -15,11 +15,11 @@ const { replace, beginRound, dispatch, repos } = vi.hoisted(() => ({
 }));
 
 vi.mock('expo-router', () => ({ router: { replace, push: vi.fn() } }));
-vi.mock('./session-provider', () => ({
+vi.mock('@/ui/session-provider', () => ({
   useSessionContext: () => ({ repos, beginRound, dispatch }),
 }));
 
-import SetupScreen from './setup';
+import SetupScreen from '../../app/setup';
 
 describe('SetupScreen (happy path)', () => {
   beforeEach(() => {

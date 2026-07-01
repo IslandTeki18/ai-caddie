@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import type { AggressionLevel, CourseIntelligenceMemory, PinLocation } from '@/core';
-import { useSessionContext } from './session-provider';
-import { PrimaryButton, Segmented } from './components/ui';
+import { useSessionContext } from '@/ui/session-provider';
+import { PrimaryButton, Segmented } from '@/ui/components';
 
 const PINS: readonly PinLocation[] = ['front', 'middle', 'back', 'left', 'right'];
 const AGGRESSION: readonly AggressionLevel[] = ['conservative', 'neutral', 'aggressive'];

@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { ScrollView, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { newId, type ClubBaseline, type PlayerProfile } from '@/core';
-import { useRepos } from './session-provider';
-import { Field, PrimaryButton } from './components/ui';
+import { useRepos } from '@/ui/session-provider';
+import { Field, PrimaryButton } from '@/ui/components';
 
 /** Player Profile (step 21): view/edit club baselines + name via PlayerRepository. */
 export default function ProfileScreen() {

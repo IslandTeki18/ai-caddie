@@ -10,9 +10,9 @@ import type {
   StartDirection,
 } from '@/core';
 import { currentRecommendation, currentPlaysLike } from '@/session';
-import { useSessionContext } from './session-provider';
-import { shotFromResult } from './lib/round-form';
-import { PrimaryButton, Segmented } from './components/ui';
+import { useSessionContext } from '@/ui/session-provider';
+import { shotFromResult } from '@/ui/round-form';
+import { PrimaryButton, Segmented } from '@/ui/components';
 
 const START: readonly StartDirection[] = ['left', 'onLine', 'right'];
 const CURVE: readonly Curve[] = ['hook', 'straight', 'fade', 'slice'];

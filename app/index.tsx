@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { deriveStatus, type SyncStatus } from '@/sync';
 import { convex } from './convex';
-import { PrimaryButton } from './components/ui';
+import { PrimaryButton } from '@/ui/components';
 
 export default function HomeScreen() {
   return (

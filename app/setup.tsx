@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { ScrollView, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import type { AggressionLevel } from '@/core';
-import { useSessionContext } from './session-provider';
-import { roundFromSetupForm } from './lib/round-form';
-import { Field, PrimaryButton, Segmented } from './components/ui';
+import { useSessionContext } from '@/ui/session-provider';
+import { roundFromSetupForm } from '@/ui/round-form';
+import { Field, PrimaryButton, Segmented } from '@/ui/components';
 
 const AGGRESSION: readonly AggressionLevel[] = ['conservative', 'neutral', 'aggressive'];
 
