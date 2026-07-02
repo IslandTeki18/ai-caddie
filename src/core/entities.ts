@@ -131,6 +131,8 @@ export const ShotSchema = ShotLogSchema.extend({
   roundId: IdSchema,
   holeNumber: z.number().int().positive(),
   kind: ShotKindSchema,
+  /** Club hit, when known — feeds per-hole course learning (SPEC §"Course learning"). */
+  club: z.string().optional(),
   updatedAt: UpdatedAtSchema,
 });
 export type Shot = z.infer<typeof ShotSchema>;

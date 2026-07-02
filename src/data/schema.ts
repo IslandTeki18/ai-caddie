@@ -79,6 +79,7 @@ export const shot = sqliteTable('shot', {
     .references(() => round.id),
   holeNumber: integer('hole_number').notNull(),
   kind: text('kind').notNull(),
+  club: text('club'),
   startDirection: text('start_direction').notNull(),
   curve: text('curve').notNull(),
   contact: text('contact').notNull(),

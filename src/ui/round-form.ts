@@ -43,6 +43,7 @@ export function shotFromResult(state: SessionState, result: ShotLog, now: number
     roundId: state.round.id,
     holeNumber: state.holeNumber,
     kind,
+    club: state.currentShot?.club,
     timestamp: result.timestamp || now,
     updatedAt: now,
   });

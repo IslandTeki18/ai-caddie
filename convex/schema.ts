@@ -75,6 +75,7 @@ export default defineSchema({
       roundId: v.string(),
       holeNumber: v.number(),
       kind: v.string(),
+      club: v.optional(v.string()),
       startDirection: v.string(),
       curve: v.string(),
       contact: v.string(),

@@ -5,3 +5,4 @@ export * from './tee';
 export * from './approach';
 export * from './cue';
 export * from './recommend';
+export * from './learning';

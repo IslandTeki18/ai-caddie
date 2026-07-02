@@ -61,6 +61,15 @@ export default function HoleScreen() {
       <PrimaryButton label="Tee shot" onPress={() => goShot('tee')} />
       <View className="h-2" />
       <PrimaryButton label="Approach" onPress={() => goShot('approach')} />
+
+      <View className="h-6" />
+      <Text
+        accessibilityRole="link"
+        onPress={() => router.push('/learning')}
+        className="text-center text-emerald-700"
+      >
+        Finish round & review learning →
+      </Text>
     </ScrollView>
   );
 }
