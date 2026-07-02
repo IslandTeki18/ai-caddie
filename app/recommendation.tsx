@@ -1,37 +1,14 @@
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import type {
-  Contact,
-  Curve,
-  DistanceResult,
-  Quality,
-  ShotLog,
-  StartDirection,
-} from '@/core';
 import { currentRecommendation, currentPlaysLike } from '@/session';
 import { useSessionContext } from '@/ui/session-provider';
-import { shotFromResult } from '@/ui/round-form';
-import { PrimaryButton, Segmented } from '@/ui/components';
+import { PrimaryButton } from '@/ui/components';
 
-const START: readonly StartDirection[] = ['left', 'onLine', 'right'];
-const CURVE: readonly Curve[] = ['hook', 'straight', 'fade', 'slice'];
-const CONTACT: readonly Contact[] = ['thin', 'fat', 'center', 'toe', 'heel'];
-const DISTANCE: readonly DistanceResult[] = ['short', 'pinHigh', 'long'];
-const QUALITY: readonly Quality[] = ['good', 'neutral', 'poor'];
-
-/** Recommendation Card (step 24): six fields + expandable plays-like + log + advance. */
+/** Recommendation Card (step 24): six fields + expandable plays-like, routes to logging. */
 export default function RecommendationScreen() {
-  const { state, dispatch } = useSessionContext();
+  const { state } = useSessionContext();
   const [expanded, setExpanded] = useState(false);
-  const [logged, setLogged] = useState(false);
-  const [result, setResult] = useState<Omit<ShotLog, 'timestamp'>>({
-    startDirection: 'onLine',
-    curve: 'straight',
-    contact: 'center',
-    distance: 'pinHigh',
-    quality: 'good',
-  });
 
   if (!state) {
     return (
@@ -43,21 +20,6 @@ export default function RecommendationScreen() {
 
   const rec = currentRecommendation(state);
   const plays = currentPlaysLike(state);
-
-  const logShot = async () => {
-    const shot = shotFromResult(state, { ...result, timestamp: Date.now() }, Date.now());
-    await dispatch({ type: 'LOG_SHOT', shot });
-    setLogged(true);
-  };
-
-  const completeHole = async () => {
-    await dispatch({ type: 'COMPLETE_HOLE' });
-    await dispatch({ type: 'NEXT_HOLE' });
-    router.replace('/hole');
-  };
-
-  const set = <K extends keyof typeof result>(k: K, v: (typeof result)[K]) =>
-    setResult((r) => ({ ...r, [k]: v }));
 
   return (
     <ScrollView className="flex-1 bg-white" contentContainerClassName="p-6">
@@ -98,24 +60,7 @@ export default function RecommendationScreen() {
         </View>
       ) : null}
 
-      <Text className="mb-2 text-lg font-semibold text-slate-900">Log result</Text>
-      <Segmented label="Start" value={result.startDirection} options={START} onChange={(v) => set('startDirection', v)} />
-      <Segmented label="Curve" value={result.curve} options={CURVE} onChange={(v) => set('curve', v)} />
-      <Segmented label="Contact" value={result.contact} options={CONTACT} onChange={(v) => set('contact', v)} />
-      <Segmented label="Distance" value={result.distance} options={DISTANCE} onChange={(v) => set('distance', v)} />
-      <Segmented label="Quality" value={result.quality} options={QUALITY} onChange={(v) => set('quality', v)} />
-
-      <PrimaryButton label={logged ? 'Logged' : 'Log shot'} onPress={logShot} disabled={logged} />
-
-      {logged ? (
-        <View className="mt-4">
-          <PrimaryButton label="Next shot" onPress={() => router.replace({ pathname: '/shot', params: { kind: 'approach' } })} />
-          <View className="h-2" />
-          <Text accessibilityRole="link" onPress={completeHole} className="text-center text-emerald-700">
-            Complete hole →
-          </Text>
-        </View>
-      ) : null}
+      <PrimaryButton label="Log result →" onPress={() => router.push('/log')} />
       <View className="h-6" />
     </ScrollView>
   );
