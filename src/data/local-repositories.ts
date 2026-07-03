@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, desc } from 'drizzle-orm';
 import type { ZodType } from 'zod';
 import {
   PlayerProfileSchema,
@@ -141,6 +141,11 @@ export class LocalRoundRepository implements RoundRepository {
   async getRound(id: string): Promise<Round | undefined> {
     const rows = await this.db.select().from(round).where(eq(round.id, id)).limit(SINGLE);
     return rows[0] ? fromRow(RoundSchema, rows[0]) : undefined;
+  }
+
+  async listRounds(): Promise<Round[]> {
+    const rows = await this.db.select().from(round).orderBy(desc(round.startedAt));
+    return rows.map((r) => fromRow(RoundSchema, r));
   }
 
   async addShot(value: Shot): Promise<void> {

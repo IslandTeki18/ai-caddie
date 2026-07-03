@@ -65,10 +65,10 @@ export default function HoleScreen() {
       <View className="h-6" />
       <Text
         accessibilityRole="link"
-        onPress={() => router.push('/learning')}
+        onPress={() => router.push('/review')}
         className="text-center text-emerald-700"
       >
-        Finish round & review learning →
+        Finish round & review →
       </Text>
     </ScrollView>
   );

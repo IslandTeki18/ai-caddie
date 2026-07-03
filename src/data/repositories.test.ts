@@ -83,6 +83,19 @@ describe('local repositories durability', () => {
     expect(loadedShots).toEqual(shots); // ordered by timestamp
   });
 
+  it('lists all stored rounds newest-first', async () => {
+    const h = await createDb({ kind: 'memory', path: join(dir, 'list.db') });
+    const rounds = new LocalRoundRepository(h.db);
+    const older: Round = { ...round, id: 'old', startedAt: 500, updatedAt: 500 };
+    const newer: Round = { ...round, id: 'new', startedAt: 1500, updatedAt: 1500 };
+    await rounds.createRound(older);
+    await rounds.createRound(newer);
+    const all = await rounds.listRounds();
+    h.close();
+
+    expect(all.map((r) => r.id)).toEqual(['new', 'old']);
+  });
+
   it('club baselines upsert idempotently by club across reopen', async () => {
     const baseline: ClubBaseline = {
       id: 'b1',

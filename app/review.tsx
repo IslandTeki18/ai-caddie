@@ -1,0 +1,178 @@
+import { useEffect, useState, type ReactNode } from 'react';
+import { ScrollView, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import {
+  analyzeRound,
+  type RoundAnalysis,
+  type ClubPerformance,
+} from '@/engine';
+import { suggestLearning, summarizeTrends, type TrendSummary } from '@/session';
+import { useSessionContext } from '@/ui/session-provider';
+import { PrimaryButton } from '@/ui/components';
+
+/**
+ * Post-Round Review (Phase I step 29). Read-only analytics for the round just
+ * played, plus trends aggregated across every stored round. Learning stays
+ * approve/reject on its own screen — here we only count what the round taught
+ * and route there. All data is local; nothing on this path needs the network.
+ */
+export default function ReviewScreen() {
+  const { state, repos } = useSessionContext();
+  const [round, setRound] = useState<RoundAnalysis>();
+  const [trends, setTrends] = useState<TrendSummary>();
+  const [taught, setTaught] = useState(0);
+
+  const roundId = state?.round.id;
+
+  useEffect(() => {
+    if (!roundId) return;
+    (async () => {
+      const shots = await repos.rounds.listShots(roundId);
+      setRound(analyzeRound(shots));
+      setTaught(suggestLearning(shots).length);
+
+      const rounds = await repos.rounds.listRounds();
+      const withShots = await Promise.all(
+        rounds.map(async (r) => ({ round: r, shots: await repos.rounds.listShots(r.id) })),
+      );
+      setTrends(summarizeTrends(withShots));
+    })();
+  }, [repos, roundId]);
+
+  if (!state) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white p-6">
+        <Text className="text-slate-500">No round to review.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView className="flex-1 bg-white" contentContainerClassName="p-6">
+      <Text className="mb-6 text-2xl font-semibold text-slate-900">Post-round review</Text>
+
+      {round === undefined ? (
+        <Text className="text-slate-400">Crunching the round…</Text>
+      ) : round.shotCount === 0 ? (
+        <Text className="text-slate-400">No shots were logged this round.</Text>
+      ) : (
+        <>
+          <Card title="This round">
+            <Text className="mb-3 text-slate-600">
+              {round.shotCount} shots · {round.quality.good} good · {round.quality.neutral} neutral ·{' '}
+              {round.quality.poor} poor
+            </Text>
+            {round.teeMiss.dominant ? (
+              <Text className="mb-1 text-slate-700">
+                Tee misses trend <Highlight>{round.teeMiss.dominant}</Highlight>.
+              </Text>
+            ) : null}
+            <BarRow label="Left" value={round.teeMiss.left} total={teeTotal(round)} />
+            <BarRow label="On line" value={round.teeMiss.onLine} total={teeTotal(round)} />
+            <BarRow label="Right" value={round.teeMiss.right} total={teeTotal(round)} />
+
+            {round.approachDistance.dominant ? (
+              <Text className="mb-1 mt-4 text-slate-700">
+                Approaches come up <Highlight>{round.approachDistance.dominant}</Highlight>.
+              </Text>
+            ) : (
+              <View className="mt-4" />
+            )}
+            <BarRow label="Short" value={round.approachDistance.short} total={apprTotal(round)} />
+            <BarRow label="Pin high" value={round.approachDistance.pinHigh} total={apprTotal(round)} />
+            <BarRow label="Long" value={round.approachDistance.long} total={apprTotal(round)} />
+          </Card>
+
+          <Card title="Clubs this round">
+            <ClubTable clubs={round.clubs} />
+          </Card>
+        </>
+      )}
+
+      {trends && trends.roundsAnalyzed > 1 ? (
+        <Card title={`Trends · ${trends.roundsAnalyzed} rounds`}>
+          <ClubTable clubs={trends.clubs} />
+          <View className="mt-3 border-t border-slate-100 pt-3">
+            <Text className="mb-2 text-xs uppercase tracking-wide text-slate-400">
+              By aggression
+            </Text>
+            {trends.byAggression.map((o) => (
+              <View key={o.aggression} className="flex-row justify-between">
+                <Text className="text-slate-600 capitalize">
+                  {o.aggression} · {o.rounds} rounds
+                </Text>
+                <Text className="text-slate-800">{pct(o.goodRate)} good</Text>
+              </View>
+            ))}
+          </View>
+        </Card>
+      ) : null}
+
+      {taught > 0 ? (
+        <View className="mb-4">
+          <PrimaryButton
+            label={`Review what the round taught (${taught})`}
+            onPress={() => router.push('/learning')}
+          />
+        </View>
+      ) : null}
+
+      <Text
+        accessibilityRole="link"
+        onPress={() => router.replace('/')}
+        className="mt-2 text-center text-emerald-700"
+      >
+        Done
+      </Text>
+      <View className="h-6" />
+    </ScrollView>
+  );
+}
+
+const teeTotal = (a: RoundAnalysis) => a.teeMiss.left + a.teeMiss.onLine + a.teeMiss.right;
+const apprTotal = (a: RoundAnalysis) =>
+  a.approachDistance.short + a.approachDistance.pinHigh + a.approachDistance.long;
+const pct = (v: number) => `${Math.round(v * 100)}%`;
+
+function Card(props: { title: string; children: ReactNode }) {
+  return (
+    <View className="mb-4 rounded-2xl border border-slate-200 p-5">
+      <Text className="mb-3 text-base font-medium text-slate-900">{props.title}</Text>
+      {props.children}
+    </View>
+  );
+}
+
+function Highlight(props: { children: ReactNode }) {
+  return <Text className="font-medium text-slate-900">{props.children}</Text>;
+}
+
+/** Text label + proportional bar. total 0 → empty bar, never NaN width. */
+function BarRow(props: { label: string; value: number; total: number }) {
+  const width = props.total ? Math.round((props.value / props.total) * 100) : 0;
+  return (
+    <View className="mb-1 flex-row items-center gap-3">
+      <Text className="w-20 text-slate-600">{props.label}</Text>
+      <View className="h-2 flex-1 rounded-full bg-slate-100">
+        <View className="h-2 rounded-full bg-emerald-500" style={{ width: `${width}%` }} />
+      </View>
+      <Text className="w-8 text-right text-slate-500">{props.value}</Text>
+    </View>
+  );
+}
+
+function ClubTable(props: { clubs: readonly ClubPerformance[] }) {
+  if (props.clubs.length === 0) return <Text className="text-slate-400">No club data yet.</Text>;
+  return (
+    <>
+      {props.clubs.map((c) => (
+        <View key={`${c.kind}:${c.club}`} className="flex-row justify-between">
+          <Text className="text-slate-600">
+            {c.club} · {c.kind} ({c.n})
+          </Text>
+          <Text className="text-slate-800">{pct(c.goodRate)} good</Text>
+        </View>
+      ))}
+    </>
+  );
+}

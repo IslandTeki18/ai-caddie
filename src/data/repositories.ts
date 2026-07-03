@@ -35,6 +35,8 @@ export interface CourseRepository {
 export interface RoundRepository {
   createRound(round: Round): Promise<void>;
   getRound(id: string): Promise<Round | undefined>;
+  /** All stored rounds, newest first — for cross-round analytics/trends. */
+  listRounds(): Promise<Round[]>;
   addShot(shot: Shot): Promise<void>;
   listShots(roundId: string): Promise<Shot[]>;
 }
