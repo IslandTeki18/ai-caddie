@@ -103,6 +103,11 @@ export class LocalCourseRepository implements CourseRepository {
     await this.db.insert(course).values(row).onConflictDoUpdate({ target: course.id, set: row });
   }
 
+  async listCourses(): Promise<Course[]> {
+    const rows = await this.db.select().from(course).orderBy(asc(course.name));
+    return rows.map((r) => fromRow(CourseSchema, r));
+  }
+
   async listHoles(courseId: string): Promise<Hole[]> {
     const rows = await this.db
       .select()
@@ -110,6 +115,13 @@ export class LocalCourseRepository implements CourseRepository {
       .where(eq(hole.courseId, courseId))
       .orderBy(asc(hole.number));
     return rows.map((r) => fromRow(HoleSchema, r));
+  }
+
+  async saveHoles(holes: Hole[]): Promise<void> {
+    for (const value of holes) {
+      const row = HoleSchema.parse(value);
+      await this.db.insert(hole).values(row).onConflictDoUpdate({ target: hole.id, set: row });
+    }
   }
 
   async getCourseIntelligence(holeId: string): Promise<CourseIntelligence | undefined> {

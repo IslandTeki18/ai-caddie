@@ -11,10 +11,16 @@ const { replace, beginRound, dispatch, repos } = vi.hoisted(() => ({
       listClubBaselines: vi.fn(async () => []),
       getProfile: vi.fn(async () => undefined),
     },
+    courses: {
+      listCourses: vi.fn(async () => []),
+    },
   },
 }));
 
 vi.mock('expo-router', () => ({ router: { replace, push: vi.fn() } }));
+// Course search is Convex-backed; stub the client to null so setup renders the
+// no-connection branch (this test covers the weather/aggression happy path).
+vi.mock('../../app/convex', () => ({ convex: null }));
 vi.mock('@/ui/session-provider', () => ({
   useSessionContext: () => ({ repos, beginRound, dispatch }),
 }));

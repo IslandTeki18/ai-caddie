@@ -11,19 +11,22 @@ import type { SessionState } from '@/session';
 
 /** Raw pre-round setup form values (all optional except aggression). */
 export interface SetupForm {
-  courseName?: string;
+  /** Local id of a course picked at setup (see course search). Optional. */
+  courseId?: string;
   windMph?: number;
   tempF?: number;
   aggressionDefault: AggressionLevel;
 }
 
 /**
- * Map the setup form to a validated `Round`. Course pick is deferred (no course
- * seeding yet) so `courseId` stays undefined; the round still plays fully.
+ * Map the setup form to a validated `Round`. `courseId` links the round to a
+ * locally-saved course when one was picked; otherwise it stays undefined and the
+ * round still plays fully.
  */
 export function roundFromSetupForm(form: SetupForm, now: number): Round {
   return RoundSchema.parse({
     id: newId(),
+    courseId: form.courseId,
     weather: { windMph: form.windMph, tempF: form.tempF },
     aggressionDefault: form.aggressionDefault,
     startedAt: now,

@@ -27,7 +27,11 @@ export interface PlayerRepository {
 export interface CourseRepository {
   getCourse(id: string): Promise<Course | undefined>;
   saveCourse(course: Course): Promise<void>;
+  /** All saved courses, alphabetical — the "courses I've been to" pick-list. */
+  listCourses(): Promise<Course[]>;
   listHoles(courseId: string): Promise<Hole[]>;
+  /** Idempotent upsert of a course's holes (keyed by stable hole id). */
+  saveHoles(holes: Hole[]): Promise<void>;
   getCourseIntelligence(holeId: string): Promise<CourseIntelligence | undefined>;
   saveCourseIntelligence(intel: CourseIntelligence): Promise<void>;
 }
