@@ -53,12 +53,19 @@ export async function createDb(opts: CreateDbOptions): Promise<DbHandle> {
   const { drizzle } = await import('drizzle-orm/op-sqlite');
   const { migrate } = await import('drizzle-orm/op-sqlite/migrator');
   const { default: migrations } = await import('../../drizzle/migrations');
-  const sqlite = open({ name: opts.path ?? 'ai-caddie.db' });
-  sqlite.execute('PRAGMA journal_mode = WAL;');
-  sqlite.execute('PRAGMA foreign_keys = ON;');
+  const raw = open({ name: opts.path ?? 'ai-caddie.db' });
+  await raw.execute('PRAGMA journal_mode = WAL;');
+  await raw.execute('PRAGMA foreign_keys = ON;');
+  // op-sqlite ≥17 returns `{ rawRows }` from executeRaw, but drizzle 0.45's
+  // driver expects executeRawAsync to resolve to bare rows. session.values()
+  // depends on it — including the migrator's read of __drizzle_migrations, so
+  // without this shim every boot after the first re-runs migration 0000 into
+  // existing tables and crashes. Drop when drizzle supports the v17 shape.
+  const sqlite = Object.assign(Object.create(raw) as typeof raw, {
+    executeRawAsync: async (query: string, params?: unknown[]) =>
+      (await raw.executeRaw(query, params as never)).rawRows,
+  });
   const db = drizzle(sqlite, { schema });
-  // Apply the drizzle-kit-bundled migrations (./drizzle/migrations.js). Idempotent:
-  // the migrator tracks applied migrations in __drizzle_migrations on-device.
   await migrate(db, migrations);
-  return { db: db as unknown as CaddieDb, close: () => sqlite.close() };
+  return { db: db as unknown as CaddieDb, close: () => raw.close() };
 }
