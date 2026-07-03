@@ -25,6 +25,14 @@ export function reducer(state: SessionState, action: Action): SessionState {
       if (state.phase !== 'setup' && state.phase !== 'holeComplete') return state;
       return { ...state, phase: 'teeShot', holeNumber: action.holeNumber, currentShot: undefined };
 
+    case 'GOTO_HOLE':
+      // Manual hole selection: allowed any time the round is in progress (not
+      // after it completes). The whole-round shot log is preserved; only the
+      // pending shot context is cleared as we re-enter the tee.
+      if (state.phase === 'roundComplete') return state;
+      if (action.holeNumber < 1 || action.holeNumber > LAST_HOLE) return state;
+      return { ...state, phase: 'teeShot', holeNumber: action.holeNumber, currentShot: undefined };
+
     case 'SET_SHOT_CONTEXT':
       if (state.phase !== 'teeShot' && state.phase !== 'approach') return state;
       return { ...state, currentShot: action.input };

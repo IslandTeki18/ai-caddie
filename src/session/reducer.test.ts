@@ -94,6 +94,32 @@ describe('round reducer — 18-hole loop (step 14)', () => {
   });
 });
 
+describe('GOTO_HOLE — manual hole selection', () => {
+  const logged = shot({ id: 's1', holeNumber: 3, kind: 'tee' });
+  const midRound: SessionState = {
+    ...createSetupState(round, [driverBaseline]),
+    phase: 'approach',
+    holeNumber: 3,
+    shots: [logged],
+    currentShot: approachInput,
+  };
+
+  it('jumps to the chosen hole, enters teeShot, and preserves the shot log', () => {
+    const next = reducer(midRound, { type: 'GOTO_HOLE', holeNumber: 7 });
+    expect(next.holeNumber).toBe(7);
+    expect(next.phase).toBe('teeShot');
+    expect(next.currentShot).toBeUndefined(); // pending context cleared
+    expect(next.shots).toEqual([logged]); // log intact
+  });
+
+  it('ignores out-of-range holes and jumps after the round completes', () => {
+    expect(reducer(midRound, { type: 'GOTO_HOLE', holeNumber: 0 })).toBe(midRound);
+    expect(reducer(midRound, { type: 'GOTO_HOLE', holeNumber: 19 })).toBe(midRound);
+    const done: SessionState = { ...midRound, phase: 'roundComplete' };
+    expect(reducer(done, { type: 'GOTO_HOLE', holeNumber: 4 })).toBe(done);
+  });
+});
+
 describe('current-round adaptation within the moderate cap (step 15)', () => {
   // Right hazard sits 5 yds outside the baseline right edge (bias 0 + lateral 15 = 15).
   const hazardTee: TeeShotInput = {

@@ -43,6 +43,10 @@ export type MissTendencies = z.infer<typeof MissTendenciesSchema>;
 export const HoleGeometrySchema = z
   .object({
     notes: z.string().optional(),
+    /** Scorecard yardage for the hole (from course import). */
+    yardage: z.number().optional(),
+    /** Stroke index / handicap 1–18 (from course import). */
+    handicap: z.number().optional(),
   })
   .passthrough();
 export type HoleGeometry = z.infer<typeof HoleGeometrySchema>;

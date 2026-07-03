@@ -5,6 +5,9 @@ import type { ShotInput } from './state';
 export type Action =
   | { type: 'SETUP'; round: Round; baselines: readonly ClubBaseline[]; profile?: PlayerProfile }
   | { type: 'START_HOLE'; holeNumber: number }
+  // Jump directly to any hole mid-round (manual hole selection). Preserves the
+  // shot log; enters teeShot on the chosen hole.
+  | { type: 'GOTO_HOLE'; holeNumber: number }
   | { type: 'SET_SHOT_CONTEXT'; input: ShotInput }
   | { type: 'LOG_SHOT'; shot: Shot }
   | { type: 'COMPLETE_HOLE' }
