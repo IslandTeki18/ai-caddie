@@ -88,4 +88,26 @@ describe('session durability (step 16)', () => {
     h.close();
     expect(restored).toBeUndefined();
   });
+
+  it('a manually-selected hole with no shots survives reopen (crash-safe current hole)', async () => {
+    const gotoPath = join(dir, 'goto.db');
+    const first: DbHandle = await createDb({ kind: 'memory', path: gotoPath });
+    const store = new SessionStore(createSetupState(round, [baseline]), new LocalRoundRepository(first.db));
+    await store.dispatch({ type: 'SETUP', round, baselines: [baseline] });
+    await store.dispatch({ type: 'START_HOLE', holeNumber: 1 });
+    await store.dispatch({ type: 'GOTO_HOLE', holeNumber: 7 }); // jumped, logged nothing
+    first.close();
+
+    const second: DbHandle = await createDb({ kind: 'memory', path: gotoPath });
+    const restored = await rehydrate(
+      new LocalRoundRepository(second.db),
+      new LocalPlayerRepository(second.db),
+      'r1',
+    );
+    second.close();
+
+    expect(restored?.holeNumber).toBe(7); // not derived from a shot — persisted
+    expect(restored?.phase).toBe('teeShot'); // fresh hole, no shots
+    expect(restored?.shots).toEqual([]);
+  });
 });

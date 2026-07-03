@@ -70,6 +70,7 @@ export const round = sqliteTable('round', {
   aggressionDefault: text('aggression_default').notNull(),
   startedAt: integer('started_at').notNull(),
   completedAt: integer('completed_at'),
+  currentHole: integer('current_hole'),
   updatedAt: integer('updated_at').notNull(),
 });
 

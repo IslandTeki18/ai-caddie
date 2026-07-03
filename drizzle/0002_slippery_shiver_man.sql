@@ -1,0 +1,1 @@
+ALTER TABLE `round` ADD `current_hole` integer;

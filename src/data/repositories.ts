@@ -43,6 +43,8 @@ export interface RoundRepository {
   listRounds(): Promise<Round[]>;
   /** Marks the round finished (sets completedAt + updatedAt for LWW sync). */
   completeRound(id: string, completedAt: number): Promise<void>;
+  /** Persists the live hole pointer (sets currentHole + updatedAt) for crash-safe resume. */
+  setCurrentHole(id: string, holeNumber: number, updatedAt: number): Promise<void>;
   /** Newest round with no completedAt — the crash-safe resume candidate. */
   findInProgressRound(): Promise<Round | undefined>;
   addShot(shot: Shot): Promise<void>;

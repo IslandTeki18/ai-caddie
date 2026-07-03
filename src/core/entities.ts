@@ -127,6 +127,8 @@ export const RoundSchema = z.object({
   startedAt: UpdatedAtSchema,
   /** Set when the round finishes; absent ⇒ in progress (drives crash-safe resume). */
   completedAt: UpdatedAtSchema.optional(),
+  /** Live hole pointer, persisted so a manually-selected hole survives a crash. */
+  currentHole: z.number().int().positive().optional(),
   updatedAt: UpdatedAtSchema,
 });
 export type Round = z.infer<typeof RoundSchema>;

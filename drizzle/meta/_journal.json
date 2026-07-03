@@ -15,6 +15,13 @@
       "when": 1783083990763,
       "tag": "0001_clean_firestar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783095339289,
+      "tag": "0002_slippery_shiver_man",
+      "breakpoints": true
     }
   ]
 }

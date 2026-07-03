@@ -68,6 +68,7 @@ export default defineSchema({
       aggressionDefault: v.string(),
       startedAt: v.number(),
       completedAt: v.optional(v.number()),
+      currentHole: v.optional(v.number()),
     }),
   ),
   shot: idx(

@@ -26,14 +26,19 @@ export class SessionStore {
     else if (action.type === 'LOG_SHOT') await this.rounds.addShot(action.shot);
     else if (next.phase === 'roundComplete' && this.state.phase !== 'roundComplete')
       await this.rounds.completeRound(next.round.id, Date.now());
+    // A hole change (START_HOLE / GOTO_HOLE / NEXT_HOLE) persists the live hole
+    // pointer so a manually-selected hole survives a crash even with no shot logged.
+    else if (next.holeNumber !== this.state.holeNumber)
+      await this.rounds.setCurrentHole(next.round.id, next.holeNumber, Date.now());
     this.state = next;
   }
 }
 
 /**
- * Rebuild session state from local storage (zero network). Phase/position is
- * best-effort — a logged round resumes mid-hole at `approach`, a fresh one at
- * `teeShot`; durability cares only that round + shots are restored.
+ * Rebuild session state from local storage (zero network). Resumes to the
+ * persisted `currentHole` (a manually-selected hole survives a crash), falling
+ * back to the last logged shot's hole, then hole 1. Phase follows whether that
+ * restored hole already has shots: mid-hole → `approach`, fresh → `teeShot`.
  */
 export async function rehydrate(
   rounds: RoundRepository,
@@ -47,13 +52,15 @@ export async function rehydrate(
   const baselines = await players.listClubBaselines();
   const profile = await players.getProfile();
   const last = shots[shots.length - 1];
+  const holeNumber = round.currentHole ?? last?.holeNumber ?? 1;
+  const hasShotsOnHole = shots.some((s) => s.holeNumber === holeNumber);
 
   return {
-    phase: last ? 'approach' : 'teeShot',
+    phase: hasShotsOnHole ? 'approach' : 'teeShot',
     round,
     baselines,
     profile,
-    holeNumber: last?.holeNumber ?? 1,
+    holeNumber,
     shots,
     currentShot: undefined,
   };

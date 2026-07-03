@@ -164,6 +164,10 @@ export class LocalRoundRepository implements RoundRepository {
     await this.db.update(round).set({ completedAt, updatedAt: completedAt }).where(eq(round.id, id));
   }
 
+  async setCurrentHole(id: string, holeNumber: number, updatedAt: number): Promise<void> {
+    await this.db.update(round).set({ currentHole: holeNumber, updatedAt }).where(eq(round.id, id));
+  }
+
   async findInProgressRound(): Promise<Round | undefined> {
     const rows = await this.db
       .select()

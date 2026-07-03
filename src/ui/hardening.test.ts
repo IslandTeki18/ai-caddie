@@ -160,6 +160,7 @@ describe('hardening (step 30): full offline round, resume, reconnect', () => {
       getRound: (id) => real.getRound(id),
       listRounds: () => real.listRounds(),
       completeRound: (id, at) => real.completeRound(id, at),
+      setCurrentHole: (id, n, at) => real.setCurrentHole(id, n, at),
       findInProgressRound: () => real.findInProgressRound(),
       listShots: (id) => real.listShots(id),
       addShot: async () => { throw new Error('disk full'); },
