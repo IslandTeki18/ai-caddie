@@ -19,9 +19,14 @@ export class SessionStore {
   }
 
   async dispatch(action: Action): Promise<void> {
-    this.state = reducer(this.state, action);
+    const next = reducer(this.state, action);
+    // Persist BEFORE mutating in-memory state: a failed write throws to the
+    // caller and leaves state untouched, so memory never drifts ahead of disk.
     if (action.type === 'SETUP') await this.rounds.createRound(action.round);
     else if (action.type === 'LOG_SHOT') await this.rounds.addShot(action.shot);
+    else if (next.phase === 'roundComplete' && this.state.phase !== 'roundComplete')
+      await this.rounds.completeRound(next.round.id, Date.now());
+    this.state = next;
   }
 }
 

@@ -69,6 +69,7 @@ export const round = sqliteTable('round', {
   weather: text('weather', { mode: 'json' }).$type<Weather>().notNull(),
   aggressionDefault: text('aggression_default').notNull(),
   startedAt: integer('started_at').notNull(),
+  completedAt: integer('completed_at'),
   updatedAt: integer('updated_at').notNull(),
 });
 
@@ -87,6 +88,12 @@ export const shot = sqliteTable('shot', {
   quality: text('quality').notNull(),
   timestamp: integer('timestamp').notNull(),
   updatedAt: integer('updated_at').notNull(),
+});
+
+/** Local-only key/value scratch (sync watermark). Never synced to Convex. */
+export const syncMeta = sqliteTable('sync_meta', {
+  key: text('key').primaryKey(),
+  value: integer('value').notNull(),
 });
 
 // --- Relations: course→holes, hole→intelligence, round→shots ---------------
@@ -125,6 +132,7 @@ export const schema = {
   courseIntelligence,
   round,
   shot,
+  syncMeta,
   courseRelations,
   holeRelations,
   courseIntelligenceRelations,

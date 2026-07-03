@@ -21,6 +21,7 @@ import {
   courseIntelligence,
   round,
   shot,
+  syncMeta,
 } from './schema';
 
 /**
@@ -89,5 +90,18 @@ export class SyncRepository {
         .values(incoming)
         .onConflictDoUpdate({ target: table.id, set: incoming });
     }
+  }
+
+  /** Persisted sync watermark: epoch ms of the last successful pass (0 = never). */
+  async getLastSync(): Promise<number> {
+    const rows = await this.db.select().from(syncMeta).where(eq(syncMeta.key, 'lastSync')).limit(1);
+    return rows[0]?.value ?? 0;
+  }
+
+  async setLastSync(value: number): Promise<void> {
+    await this.db
+      .insert(syncMeta)
+      .values({ key: 'lastSync', value })
+      .onConflictDoUpdate({ target: syncMeta.key, set: { value } });
   }
 }

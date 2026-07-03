@@ -121,6 +121,8 @@ export const RoundSchema = z.object({
   weather: WeatherSchema,
   aggressionDefault: AggressionLevelSchema,
   startedAt: UpdatedAtSchema,
+  /** Set when the round finishes; absent ⇒ in progress (drives crash-safe resume). */
+  completedAt: UpdatedAtSchema.optional(),
   updatedAt: UpdatedAtSchema,
 });
 export type Round = z.infer<typeof RoundSchema>;

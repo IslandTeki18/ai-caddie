@@ -8,6 +8,13 @@
       "when": 1783045839386,
       "tag": "0000_rare_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783083990763,
+      "tag": "0001_clean_firestar",
+      "breakpoints": true
     }
   ]
 }

@@ -37,6 +37,10 @@ export interface RoundRepository {
   getRound(id: string): Promise<Round | undefined>;
   /** All stored rounds, newest first — for cross-round analytics/trends. */
   listRounds(): Promise<Round[]>;
+  /** Marks the round finished (sets completedAt + updatedAt for LWW sync). */
+  completeRound(id: string, completedAt: number): Promise<void>;
+  /** Newest round with no completedAt — the crash-safe resume candidate. */
+  findInProgressRound(): Promise<Round | undefined>;
   addShot(shot: Shot): Promise<void>;
   listShots(roundId: string): Promise<Shot[]>;
 }
