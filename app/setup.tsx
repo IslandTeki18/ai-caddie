@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { View } from 'react-native';
 import { router } from 'expo-router';
 import type { AggressionLevel } from '@/core';
 import { useSessionContext } from '@/ui/session-provider';
 import { roundFromSetupForm } from '@/ui/round-form';
-import { Field, PrimaryButton, Segmented } from '@/ui/components';
+import { Screen, Header, PrimaryButton, Segmented, TextField, LinkText } from '@/ui/components';
 
 const AGGRESSION: readonly AggressionLevel[] = ['conservative', 'neutral', 'aggressive'];
 
@@ -33,44 +33,32 @@ export default function SetupScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="p-6">
-      <Text className="mb-6 text-2xl font-semibold text-slate-900">New Round</Text>
+    <Screen>
+      <Header eyebrow="Set up" title="New round" />
 
-      <Field label="Wind (mph)">
-        <TextInput
-          accessibilityLabel="Wind (mph)"
-          keyboardType="numeric"
-          value={windMph}
-          onChangeText={setWindMph}
-          placeholder="optional"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-slate-900"
-        />
-      </Field>
+      <TextField
+        label="Wind (mph)"
+        keyboardType="numeric"
+        value={windMph}
+        onChangeText={setWindMph}
+        placeholder="optional"
+      />
 
-      <Field label="Temperature (°F)">
-        <TextInput
-          accessibilityLabel="Temperature (°F)"
-          keyboardType="numeric"
-          value={tempF}
-          onChangeText={setTempF}
-          placeholder="optional"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-slate-900"
-        />
-      </Field>
+      <TextField
+        label="Temperature (°F)"
+        keyboardType="numeric"
+        value={tempF}
+        onChangeText={setTempF}
+        placeholder="optional"
+      />
 
       <Segmented label="Default aggression" value={aggression} options={AGGRESSION} onChange={setAggression} />
 
       <PrimaryButton label="Start round" onPress={start} />
 
-      <View className="mt-3">
-        <Text
-          accessibilityRole="link"
-          onPress={() => router.push('/profile')}
-          className="text-center text-emerald-700"
-        >
-          Edit player profile
-        </Text>
+      <View className="mt-4">
+        <LinkText label="Edit player profile" onPress={() => router.push('/profile')} />
       </View>
-    </ScrollView>
+    </Screen>
   );
 }

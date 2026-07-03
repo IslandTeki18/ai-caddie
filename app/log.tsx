@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { router } from 'expo-router';
 import type { ShotLog } from '@/core';
 import { useSessionContext } from '@/ui/session-provider';
 import { shotFromResult } from '@/ui/round-form';
-import { PrimaryButton } from '@/ui/components';
+import { Screen, CenteredScreen, Header, PrimaryButton, LinkText } from '@/ui/components';
 import { ShotLogGrid } from '@/ui/shot-log-grid';
 
 /** Shot Logging screen (step 25): grid → LOG_SHOT → next shot / complete hole. */
@@ -14,9 +14,9 @@ export default function LogScreen() {
 
   if (!state) {
     return (
-      <View className="flex-1 items-center justify-center bg-white p-6">
-        <Text className="text-slate-500">No shot in progress.</Text>
-      </View>
+      <CenteredScreen>
+        <Text className="text-fg-muted">No shot in progress.</Text>
+      </CenteredScreen>
     );
   }
 
@@ -33,20 +33,18 @@ export default function LogScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="p-6">
-      <Text className="mb-4 text-lg font-semibold text-slate-900">Log result</Text>
+    <Screen>
+      <Header eyebrow="Log" title="Result" />
       <ShotLogGrid onLog={onLog} disabled={logged} />
 
       {logged ? (
         <View className="mt-4">
           <PrimaryButton label="Next shot" onPress={() => router.replace({ pathname: '/shot', params: { kind: 'approach' } })} />
-          <View className="h-2" />
-          <Text accessibilityRole="link" onPress={completeHole} className="text-center text-emerald-700">
-            Complete hole →
-          </Text>
+          <View className="h-3" />
+          <LinkText label="Complete hole →" onPress={completeHole} />
         </View>
       ) : null}
       <View className="h-6" />
-    </ScrollView>
+    </Screen>
   );
 }

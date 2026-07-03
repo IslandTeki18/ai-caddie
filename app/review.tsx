@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   analyzeRound,
@@ -8,7 +8,7 @@ import {
 } from '@/engine';
 import { suggestLearning, summarizeTrends, type TrendSummary } from '@/session';
 import { useSessionContext } from '@/ui/session-provider';
-import { PrimaryButton } from '@/ui/components';
+import { Screen, CenteredScreen, Header, Card, PrimaryButton, LinkText } from '@/ui/components';
 
 /**
  * Post-Round Review (Phase I step 29). Read-only analytics for the round just
@@ -41,29 +41,29 @@ export default function ReviewScreen() {
 
   if (!state) {
     return (
-      <View className="flex-1 items-center justify-center bg-white p-6">
-        <Text className="text-slate-500">No round to review.</Text>
-      </View>
+      <CenteredScreen>
+        <Text className="text-fg-muted">No round to review.</Text>
+      </CenteredScreen>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="p-6">
-      <Text className="mb-6 text-2xl font-semibold text-slate-900">Post-round review</Text>
+    <Screen>
+      <Header eyebrow="Post-round" title="Review" />
 
       {round === undefined ? (
-        <Text className="text-slate-400">Crunching the round…</Text>
+        <Text className="text-fg-dim">Crunching the round…</Text>
       ) : round.shotCount === 0 ? (
-        <Text className="text-slate-400">No shots were logged this round.</Text>
+        <Text className="text-fg-dim">No shots were logged this round.</Text>
       ) : (
         <>
           <Card title="This round">
-            <Text className="mb-3 text-slate-600">
+            <Text className="mb-3 text-fg-muted">
               {round.shotCount} shots · {round.quality.good} good · {round.quality.neutral} neutral ·{' '}
               {round.quality.poor} poor
             </Text>
             {round.teeMiss.dominant ? (
-              <Text className="mb-1 text-slate-700">
+              <Text className="mb-1 text-fg">
                 Tee misses trend <Highlight>{round.teeMiss.dominant}</Highlight>.
               </Text>
             ) : null}
@@ -72,7 +72,7 @@ export default function ReviewScreen() {
             <BarRow label="Right" value={round.teeMiss.right} total={teeTotal(round)} />
 
             {round.approachDistance.dominant ? (
-              <Text className="mb-1 mt-4 text-slate-700">
+              <Text className="mb-1 mt-4 text-fg">
                 Approaches come up <Highlight>{round.approachDistance.dominant}</Highlight>.
               </Text>
             ) : (
@@ -92,16 +92,16 @@ export default function ReviewScreen() {
       {trends && trends.roundsAnalyzed > 1 ? (
         <Card title={`Trends · ${trends.roundsAnalyzed} rounds`}>
           <ClubTable clubs={trends.clubs} />
-          <View className="mt-3 border-t border-slate-100 pt-3">
-            <Text className="mb-2 text-xs uppercase tracking-wide text-slate-400">
+          <View className="mt-3 border-t border-line pt-3">
+            <Text className="mb-2 text-xs uppercase tracking-wide text-fg-muted">
               By aggression
             </Text>
             {trends.byAggression.map((o) => (
               <View key={o.aggression} className="flex-row justify-between">
-                <Text className="text-slate-600 capitalize">
+                <Text className="text-fg-muted capitalize">
                   {o.aggression} · {o.rounds} rounds
                 </Text>
-                <Text className="text-slate-800">{pct(o.goodRate)} good</Text>
+                <Text className="text-fg">{pct(o.goodRate)} good</Text>
               </View>
             ))}
           </View>
@@ -117,15 +117,9 @@ export default function ReviewScreen() {
         </View>
       ) : null}
 
-      <Text
-        accessibilityRole="link"
-        onPress={() => router.replace('/')}
-        className="mt-2 text-center text-emerald-700"
-      >
-        Done
-      </Text>
+      <LinkText label="Done" onPress={() => router.replace('/')} className="mt-2" />
       <View className="h-6" />
-    </ScrollView>
+    </Screen>
   );
 }
 
@@ -134,17 +128,8 @@ const apprTotal = (a: RoundAnalysis) =>
   a.approachDistance.short + a.approachDistance.pinHigh + a.approachDistance.long;
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
-function Card(props: { title: string; children: ReactNode }) {
-  return (
-    <View className="mb-4 rounded-2xl border border-slate-200 p-5">
-      <Text className="mb-3 text-base font-medium text-slate-900">{props.title}</Text>
-      {props.children}
-    </View>
-  );
-}
-
 function Highlight(props: { children: ReactNode }) {
-  return <Text className="font-medium text-slate-900">{props.children}</Text>;
+  return <Text className="font-semibold text-accent">{props.children}</Text>;
 }
 
 /** Text label + proportional bar. total 0 → empty bar, never NaN width. */
@@ -152,25 +137,25 @@ function BarRow(props: { label: string; value: number; total: number }) {
   const width = props.total ? Math.round((props.value / props.total) * 100) : 0;
   return (
     <View className="mb-1 flex-row items-center gap-3">
-      <Text className="w-20 text-slate-600">{props.label}</Text>
-      <View className="h-2 flex-1 rounded-full bg-slate-100">
-        <View className="h-2 rounded-full bg-emerald-500" style={{ width: `${width}%` }} />
+      <Text className="w-20 text-fg-muted">{props.label}</Text>
+      <View className="h-2 flex-1 rounded-full bg-surface-2">
+        <View className="h-2 rounded-full bg-accent" style={{ width: `${width}%` }} />
       </View>
-      <Text className="w-8 text-right text-slate-500">{props.value}</Text>
+      <Text className="w-8 text-right text-fg-muted">{props.value}</Text>
     </View>
   );
 }
 
 function ClubTable(props: { clubs: readonly ClubPerformance[] }) {
-  if (props.clubs.length === 0) return <Text className="text-slate-400">No club data yet.</Text>;
+  if (props.clubs.length === 0) return <Text className="text-fg-dim">No club data yet.</Text>;
   return (
     <>
       {props.clubs.map((c) => (
         <View key={`${c.kind}:${c.club}`} className="flex-row justify-between">
-          <Text className="text-slate-600">
+          <Text className="text-fg-muted">
             {c.club} · {c.kind} ({c.n})
           </Text>
-          <Text className="text-slate-800">{pct(c.goodRate)} good</Text>
+          <Text className="text-fg">{pct(c.goodRate)} good</Text>
         </View>
       ))}
     </>

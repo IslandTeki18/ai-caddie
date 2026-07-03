@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import type {
   AggressionLevel,
@@ -10,7 +10,7 @@ import type {
 } from '@/core';
 import { nearestClub, type ApproachShotInput, type TeeShotInput } from '@/session';
 import { useSessionContext } from '@/ui/session-provider';
-import { Field, PrimaryButton, Segmented } from '@/ui/components';
+import { Screen, Header, PrimaryButton, Segmented, TextField } from '@/ui/components';
 
 const CONFIDENCE: readonly Confidence[] = ['low', 'medium', 'high'];
 const LIES: readonly Lie[] = ['tee', 'fairway', 'rough', 'sand'];
@@ -54,32 +54,15 @@ export default function ShotScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="p-6">
-      <Text className="mb-6 text-2xl font-semibold text-slate-900">
-        {kind === 'tee' ? 'Tee shot' : 'Approach'}
-      </Text>
+    <Screen>
+      <Header eyebrow="Shot" title={kind === 'tee' ? 'Tee shot' : 'Approach'} />
 
       {kind === 'tee' ? (
-        <Field label="Club">
-          <TextInput
-            accessibilityLabel="Club"
-            value={teeClub}
-            onChangeText={setTeeClub}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-slate-900"
-          />
-        </Field>
+        <TextField label="Club" value={teeClub} onChangeText={setTeeClub} />
       ) : (
         <>
-          <Field label="Yardage">
-            <TextInput
-              accessibilityLabel="Yardage"
-              keyboardType="numeric"
-              value={yardage}
-              onChangeText={setYardage}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-slate-900"
-            />
-          </Field>
-          <Text className="mb-4 text-sm text-slate-500">Suggested club: {club}</Text>
+          <TextField label="Yardage" keyboardType="numeric" value={yardage} onChangeText={setYardage} />
+          <Text className="mb-4 -mt-2 text-sm text-fg-muted">Suggested club: {club}</Text>
           <Segmented label="Lie" value={lie} options={LIES} onChange={setLie} />
           <Segmented label="Elevation" value={elevation} options={ELEVATIONS} onChange={setElevation} />
           <Segmented label="Pin" value={pin} options={PINS} onChange={setPin} />
@@ -96,6 +79,6 @@ export default function ShotScreen() {
 
       <PrimaryButton label="Get recommendation" onPress={submit} />
       <View className="h-6" />
-    </ScrollView>
+    </Screen>
   );
 }

@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import type { Round } from '@/core';
 import type { SyncStatus } from '@/sync';
 import { useSessionContext } from '@/ui/session-provider';
-import { PrimaryButton } from '@/ui/components';
+import { PrimaryButton, LinkText } from '@/ui/components';
 
 export default function HomeScreen() {
   const { repos, syncStatus, resumeRound } = useSessionContext();
@@ -17,8 +17,8 @@ export default function HomeScreen() {
   }, [repos]);
 
   return (
-    <View className="flex-1 items-center justify-center bg-white px-6">
-      <Text className="text-3xl font-semibold text-slate-900">AI Caddie</Text>
+    <View className="flex-1 items-center justify-center bg-ink px-6">
+      <Text className="text-4xl font-bold text-fg">AI Caddie</Text>
       <SyncBadge status={syncStatus} />
       <View className="mt-10 w-full max-w-xs">
         {inProgress ? (
@@ -30,19 +30,17 @@ export default function HomeScreen() {
           />
         ) : null}
         <PrimaryButton label="Start round" onPress={() => router.push('/setup')} />
-        <View className="h-2" />
-        <Text accessibilityRole="link" onPress={() => router.push('/profile')} className="text-center text-emerald-700">
-          Player profile
-        </Text>
+        <View className="h-3" />
+        <LinkText label="Player profile" onPress={() => router.push('/profile')} />
       </View>
     </View>
   );
 }
 
 const BADGE: Record<SyncStatus, { label: string; dot: string; text: string }> = {
-  synced: { label: 'Synced', dot: 'bg-emerald-500', text: 'text-emerald-700' },
-  pending: { label: 'Pending', dot: 'bg-amber-500', text: 'text-amber-700' },
-  offline: { label: 'Offline', dot: 'bg-slate-400', text: 'text-slate-500' },
+  synced: { label: 'Synced', dot: 'bg-accent', text: 'text-accent' },
+  pending: { label: 'Pending', dot: 'bg-amber-400', text: 'text-amber-300' },
+  offline: { label: 'Offline', dot: 'bg-fg-dim', text: 'text-fg-muted' },
 };
 
 /** Unobtrusive sync status (step 19), driven by the provider's reconcile loop. */

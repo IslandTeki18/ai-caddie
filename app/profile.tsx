@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { newId, type ClubBaseline, type PlayerProfile } from '@/core';
 import { useRepos } from '@/ui/session-provider';
-import { Field, PrimaryButton } from '@/ui/components';
+import { Screen, Header, PrimaryButton, TextField, LinkText } from '@/ui/components';
 
 /** Player Profile (step 21): view/edit club baselines + name via PlayerRepository. */
 export default function ProfileScreen() {
@@ -43,41 +43,39 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerClassName="p-6">
-      <Text className="mb-6 text-2xl font-semibold text-slate-900">Player Profile</Text>
+    <Screen>
+      <Header eyebrow="Profile" title="Player" />
 
-      <Field label="Name">
-        <TextInput
-          accessibilityLabel="Name"
-          value={name}
-          onChangeText={(t) => {
-            setName(t);
-            setSaved(false);
-          }}
-          placeholder="optional"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-slate-900"
-        />
-      </Field>
+      <TextField
+        label="Name"
+        value={name}
+        onChangeText={(t) => {
+          setName(t);
+          setSaved(false);
+        }}
+        placeholder="optional"
+      />
 
-      <Text className="mb-2 text-sm font-medium text-slate-600">Club yardages</Text>
+      <Text className="mb-2 text-sm font-medium text-fg-muted">Club yardages</Text>
       {baselines.length === 0 ? (
-        <Text className="mb-4 text-slate-400">No baselines yet. Import TrackMan data to populate.</Text>
+        <Text className="mb-4 text-fg-dim">No baselines yet. Import TrackMan data to populate.</Text>
       ) : (
         baselines.map((b) => (
           <View key={b.club} className="mb-3 flex-row items-center justify-between">
-            <Text className="text-slate-800">{b.club}</Text>
+            <Text className="text-fg">{b.club}</Text>
             <View className="flex-row items-center gap-2">
               <TextInput
                 accessibilityLabel={`${b.club} carry`}
                 keyboardType="numeric"
+                placeholderTextColor="#5E675F"
                 value={String(b.distanceYards)}
                 onChangeText={(t) => {
                   setDistance(b.club, t);
                   setSaved(false);
                 }}
-                className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-right text-slate-900"
+                className="w-20 rounded-xl border border-line bg-surface px-4 py-3 text-right text-fg"
               />
-              <Text className="text-slate-500">yds</Text>
+              <Text className="text-fg-muted">yds</Text>
             </View>
           </View>
         ))
@@ -85,9 +83,7 @@ export default function ProfileScreen() {
 
       <PrimaryButton label={saved ? 'Saved' : 'Save profile'} onPress={save} />
 
-      <Text accessibilityRole="link" onPress={() => router.back()} className="mt-3 text-center text-emerald-700">
-        Back
-      </Text>
-    </ScrollView>
+      <LinkText label="Back" onPress={() => router.back()} className="mt-4" />
+    </Screen>
   );
 }

@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConvexProvider } from 'convex/react';
 import { convex } from './convex';
@@ -13,8 +14,9 @@ export default function RootLayout() {
     <SessionProvider syncClient={syncClient}>
       {/* Headers are hidden app-wide, so inset every screen below the status
           bar / Dynamic Island here instead of per screen. */}
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-        <Stack screenOptions={{ headerShown: false }} />
+      <StatusBar style="light" />
+      <SafeAreaView className="flex-1 bg-ink" edges={['top']}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0F1511' } }} />
       </SafeAreaView>
     </SessionProvider>
   );
