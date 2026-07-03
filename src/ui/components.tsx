@@ -18,9 +18,11 @@ export function Segmented<T extends string>(props: {
             <Pressable
               key={opt}
               accessibilityRole="button"
+              accessibilityLabel={props.label ? `${props.label}: ${opt}` : opt}
               accessibilityState={{ selected: active }}
               onPress={() => props.onChange(opt)}
-              className={`rounded-lg border px-3 py-2 ${active ? 'border-emerald-600 bg-emerald-50' : 'border-slate-300 bg-white'}`}
+              // min-h-11 ≈ 44pt Apple minimum tap target — logged mid-round with a glove on.
+              className={`min-h-11 min-w-11 items-center justify-center rounded-lg border px-3 py-2 ${active ? 'border-emerald-600 bg-emerald-50' : 'border-slate-300 bg-white'}`}
             >
               <Text className={active ? 'text-emerald-700' : 'text-slate-700'}>{opt}</Text>
             </Pressable>
@@ -36,9 +38,11 @@ export function PrimaryButton(props: { label: string; onPress: () => void; disab
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={props.label}
+      accessibilityState={{ disabled: props.disabled ?? false }}
       disabled={props.disabled}
       onPress={props.onPress}
-      className={`mt-2 rounded-xl px-4 py-3 ${props.disabled ? 'bg-slate-300' : 'bg-emerald-600'}`}
+      className={`mt-2 min-h-11 justify-center rounded-xl px-4 py-3 ${props.disabled ? 'bg-slate-300' : 'bg-emerald-600'}`}
     >
       <Text className="text-center text-base font-semibold text-white">{props.label}</Text>
     </Pressable>

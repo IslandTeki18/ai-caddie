@@ -5,17 +5,22 @@ import {
   LocalPlayerRepository,
   LocalCourseRepository,
   LocalRoundRepository,
+  SyncRepository,
   type PlayerRepository,
   type CourseRepository,
   type RoundRepository,
 } from '@/data';
+import { reconcile, type SyncClient, type SyncStatus } from '@/sync';
 import {
   SessionStore,
   createSetupState,
+  rehydrate,
   type Action,
   type SessionState,
 } from '@/session';
 import type { Round, ClubBaseline, PlayerProfile } from '@/core';
+
+const SYNC_INTERVAL_MS = 15_000;
 
 export interface Repos {
   players: PlayerRepository;
@@ -27,28 +32,42 @@ interface SessionContextValue {
   repos: Repos;
   /** Current round state, or undefined until a round is begun. */
   state?: SessionState;
+  /** Live sync indicator; 'offline' until a pass succeeds (or no client). */
+  syncStatus: SyncStatus;
   dispatch: (action: Action) => Promise<void>;
   beginRound: (
     round: Round,
     baselines: readonly ClubBaseline[],
     profile?: PlayerProfile,
   ) => Promise<void>;
+  /** Crash-safe resume: rehydrate a persisted round into a live store. */
+  resumeRound: (roundId: string) => Promise<boolean>;
 }
 
 const SessionContext = createContext<SessionContextValue | undefined>(undefined);
 
 /**
- * Root provider: owns the on-device DB + repositories and the live SessionStore.
- * SessionStore is a mutable class, so a version tick forces re-render after each
- * dispatch. Reads always pull fresh `store.state` — the store is captured, never
- * the state, so there is no stale closure.
+ * Root provider: owns the on-device DB + repositories, the live SessionStore,
+ * and the background reconcile loop (additive — the app is fully functional
+ * with no client). SessionStore is a mutable class, so a version tick forces
+ * re-render after each dispatch. Reads always pull fresh `store.state` — the
+ * store is captured, never the state, so there is no stale closure.
  *
  * ponytail: version-tick over useSyncExternalStore — one provider, one consumer
  * tree; add a subscribe API to SessionStore only if a second consumer appears.
  */
-export function SessionProvider({ children }: { children: ReactNode }): ReactNode {
+export function SessionProvider({
+  children,
+  syncClient,
+}: {
+  children: ReactNode;
+  /** Convex seam; omit to run fully offline (badge reads "offline"). */
+  syncClient?: SyncClient;
+}): ReactNode {
   const [repos, setRepos] = useState<Repos>();
+  const syncRepoRef = useRef<SyncRepository | undefined>(undefined);
   const storeRef = useRef<SessionStore | undefined>(undefined);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('offline');
   const [, tick] = useReducer((c: number) => c + 1, 0);
 
   useEffect(() => {
@@ -58,6 +77,7 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactNod
       const db = await createDb({ kind: 'op-sqlite', path: 'ai-caddie.db' });
       handle = db;
       if (closed) return db.close();
+      syncRepoRef.current = new SyncRepository(db.db);
       setRepos({
         players: new LocalPlayerRepository(db.db),
         courses: new LocalCourseRepository(db.db),
@@ -70,6 +90,34 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactNod
     };
   }, []);
 
+  // Background reconcile loop (steps 18–19, wired on-device). Push/pull with a
+  // persisted watermark; any failure reads "offline" and the next tick retries —
+  // the queue is implicit in collectSince(lastSync).
+  useEffect(() => {
+    const store = syncRepoRef.current;
+    if (!repos || !store || !syncClient) return;
+    let stopped = false;
+
+    const pass = async () => {
+      try {
+        const lastSync = await store.getLastSync();
+        if ((await store.collectSince(lastSync)).length > 0 && !stopped) setSyncStatus('pending');
+        const result = await reconcile({ store, client: syncClient, lastSync });
+        if (result.lastSync !== lastSync) await store.setLastSync(result.lastSync);
+        if (!stopped) setSyncStatus(result.status);
+      } catch {
+        if (!stopped) setSyncStatus('offline'); // even watermark reads must never crash the app
+      }
+    };
+
+    void pass();
+    const id = setInterval(() => void pass(), SYNC_INTERVAL_MS);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, [repos, syncClient]);
+
   if (!repos) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
@@ -81,6 +129,7 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactNod
   const value: SessionContextValue = {
     repos,
     state: storeRef.current?.state,
+    syncStatus,
     dispatch: async (action) => {
       if (!storeRef.current) return;
       await storeRef.current.dispatch(action);
@@ -93,6 +142,13 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactNod
       );
       await storeRef.current.dispatch({ type: 'SETUP', round, baselines, profile });
       tick();
+    },
+    resumeRound: async (roundId) => {
+      const restored = await rehydrate(repos.rounds, repos.players, roundId);
+      if (!restored) return false;
+      storeRef.current = new SessionStore(restored, repos.rounds);
+      tick();
+      return true;
     },
   };
 

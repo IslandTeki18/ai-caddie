@@ -1,16 +1,34 @@
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { deriveStatus, type SyncStatus } from '@/sync';
-import { convex } from './convex';
+import type { Round } from '@/core';
+import type { SyncStatus } from '@/sync';
+import { useSessionContext } from '@/ui/session-provider';
 import { PrimaryButton } from '@/ui/components';
 
 export default function HomeScreen() {
+  const { repos, syncStatus, resumeRound } = useSessionContext();
+  const [inProgress, setInProgress] = useState<Round>();
+
+  // Crash-safe resume (step 30): offer to pick up the exact hole/shot of any
+  // round that never completed. Purely local — zero network involved.
+  useEffect(() => {
+    void repos.rounds.findInProgressRound().then(setInProgress);
+  }, [repos]);
+
   return (
     <View className="flex-1 items-center justify-center bg-white px-6">
       <Text className="text-3xl font-semibold text-slate-900">AI Caddie</Text>
-      <SyncBadge />
+      <SyncBadge status={syncStatus} />
       <View className="mt-10 w-full max-w-xs">
+        {inProgress ? (
+          <PrimaryButton
+            label="Resume round"
+            onPress={async () => {
+              if (await resumeRound(inProgress.id)) router.push('/hole');
+            }}
+          />
+        ) : null}
         <PrimaryButton label="Start round" onPress={() => router.push('/setup')} />
         <View className="h-2" />
         <Text accessibilityRole="link" onPress={() => router.push('/profile')} className="text-center text-emerald-700">
@@ -27,36 +45,13 @@ const BADGE: Record<SyncStatus, { label: string; dot: string; text: string }> = 
   offline: { label: 'Offline', dot: 'bg-slate-400', text: 'text-slate-500' },
 };
 
-/** Unobtrusive sync status (blueprint step 19). Reads local; sync is additive. */
-function SyncBadge() {
-  const status = useSyncStatus();
+/** Unobtrusive sync status (step 19), driven by the provider's reconcile loop. */
+function SyncBadge({ status }: { status: SyncStatus }) {
   const style = BADGE[status];
   return (
-    <View className="mt-4 flex-row items-center gap-2">
+    <View accessibilityLabel={`Sync status: ${style.label}`} className="mt-4 flex-row items-center gap-2">
       <View className={`h-2 w-2 rounded-full ${style.dot}`} />
       <Text className={`text-sm ${style.text}`}>{style.label}</Text>
     </View>
   );
-}
-
-/**
- * Sync status from the live Convex connection. Offline whenever the socket is
- * down or no client is configured. pendingCount is 0 until the on-device
- * reconcile loop lands.
- * ponytail: poll connectionState() rather than wire a subscription — a 2s tick is
- * plenty for a status dot; swap to an event subscription only if it ever matters.
- */
-function useSyncStatus(): SyncStatus {
-  const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    const client = convex;
-    if (!client) return; // no client → stays disconnected → offline
-    const tick = () => setConnected(client.connectionState().isWebSocketConnected);
-    tick();
-    const id = setInterval(tick, 2000);
-    return () => clearInterval(id);
-  }, []);
-
-  return deriveStatus({ lastError: !connected, pendingCount: 0 });
 }
