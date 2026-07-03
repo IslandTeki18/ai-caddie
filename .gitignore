@@ -19,3 +19,6 @@ convex/_generated
 
 expo-env.d.ts
 # @end expo-cli
+# Native projects (Expo CNG — regenerate with `npx expo prebuild`)
+/ios
+/android

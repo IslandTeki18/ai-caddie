@@ -54,6 +54,7 @@ CREATE TABLE `shot` (
 	`round_id` text NOT NULL,
 	`hole_number` integer NOT NULL,
 	`kind` text NOT NULL,
+	`club` text,
 	`start_direction` text NOT NULL,
 	`curve` text NOT NULL,
 	`contact` text NOT NULL,

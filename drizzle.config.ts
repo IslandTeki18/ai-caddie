@@ -5,6 +5,9 @@ import { defineConfig } from 'drizzle-kit';
 // on device). Run: `npm run db:generate`.
 export default defineConfig({
   dialect: 'sqlite',
+  // `expo` driver bundles migrations into ./drizzle/migrations.js (journal +
+  // inlined SQL) for on-device application by the op-sqlite driver at DB init.
+  driver: 'expo',
   schema: './src/data/schema.ts',
   out: './drizzle',
 });

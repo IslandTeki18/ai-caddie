@@ -46,15 +46,19 @@ export async function createDb(opts: CreateDbOptions): Promise<DbHandle> {
     return { db: db as CaddieDb, close: () => sqlite.close() };
   }
 
-  // op-sqlite (device). Not exercised by tests; native module only.
+  // op-sqlite (device). Not exercised by tests; native module only. Dynamic
+  // import keeps the native module and the .sql-bundling migrations file out of
+  // the Node/vitest resolution graph (the memory branch returns above).
   const { open } = await import('@op-engineering/op-sqlite');
   const { drizzle } = await import('drizzle-orm/op-sqlite');
+  const { migrate } = await import('drizzle-orm/op-sqlite/migrator');
+  const { default: migrations } = await import('../../drizzle/migrations');
   const sqlite = open({ name: opts.path ?? 'ai-caddie.db' });
   sqlite.execute('PRAGMA journal_mode = WAL;');
   sqlite.execute('PRAGMA foreign_keys = ON;');
   const db = drizzle(sqlite, { schema });
-  // ponytail: device migration bundling (drizzle-kit → migrations.js + babel
-  // inline transform) is wired at app bootstrap in a later phase; the generated
-  // SQL in ./drizzle is the source. Tests cover correctness via the memory driver.
+  // Apply the drizzle-kit-bundled migrations (./drizzle/migrations.js). Idempotent:
+  // the migrator tracks applied migrations in __drizzle_migrations on-device.
+  await migrate(db, migrations);
   return { db: db as unknown as CaddieDb, close: () => sqlite.close() };
 }

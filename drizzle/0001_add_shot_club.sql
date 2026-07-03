@@ -1,1 +1,0 @@
-ALTER TABLE `shot` ADD `club` text;

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "2b666ac2-5cd3-402e-aebb-554c73c6667f",
+  "id": "84d5085d-663b-4103-b11f-97e7427a2368",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "club_baseline": {
@@ -345,6 +345,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "club": {
+          "name": "club",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "start_direction": {
