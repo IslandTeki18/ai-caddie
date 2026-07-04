@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import {
   analyzeRound,
   type RoundAnalysis,
@@ -22,7 +22,11 @@ export default function ReviewScreen() {
   const [trends, setTrends] = useState<TrendSummary>();
   const [taught, setTaught] = useState(0);
 
-  const roundId = state?.round.id;
+  // A past round arrives via route param (from the home list); the round just
+  // played comes from session state. Param wins so the list can review any round.
+  const params = useLocalSearchParams<{ roundId?: string }>();
+  const roundId = params.roundId ?? state?.round.id;
+  const isActiveRound = roundId !== undefined && roundId === state?.round.id;
 
   useEffect(() => {
     if (!roundId) return;
@@ -39,7 +43,7 @@ export default function ReviewScreen() {
     })();
   }, [repos, roundId]);
 
-  if (!state) {
+  if (!roundId) {
     return (
       <CenteredScreen>
         <Text className="text-fg-muted">No round to review.</Text>
@@ -108,7 +112,7 @@ export default function ReviewScreen() {
         </Card>
       ) : null}
 
-      {taught > 0 ? (
+      {taught > 0 && isActiveRound ? (
         <View className="mb-4">
           <PrimaryButton
             label={`Review what the round taught (${taught})`}
