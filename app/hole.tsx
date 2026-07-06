@@ -101,7 +101,15 @@ export default function HoleScreen() {
       <PrimaryButton label="Approach" onPress={() => goShot('approach')} />
 
       <View className="h-6" />
-      <LinkText label="Finish round & review →" onPress={() => router.push('/review')} />
+      <LinkText
+        label="Finish round & review →"
+        onPress={async () => {
+          // Mark the round complete (persists completedAt) so it stops showing
+          // as resumable on home — finishing early counts as finishing.
+          await dispatch({ type: 'COMPLETE_ROUND' });
+          router.push('/review');
+        }}
+      />
     </Screen>
   );
 }
