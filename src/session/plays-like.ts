@@ -66,3 +66,22 @@ export function nearestClub(baselines: readonly ClubBaseline[], yards: number): 
   }
   return best?.club;
 }
+
+/**
+ * Per-term labels for the plays-like card, each carrying the round condition
+ * that produced it ("Wind · 8 mph"). An unknown condition renders the bare label.
+ * ponytail: wind has no stored direction yet — add "in, off the left" when it does.
+ */
+export function playsLikeLabels(state: SessionState): Record<keyof Omit<PlaysLikeBreakdown, 'total'>, string> {
+  const cur = state.currentShot;
+  const { windMph, tempF } = state.round.weather;
+  const elevation = cur?.kind === 'approach' ? cur.elevation : undefined;
+  const ELEV: Record<Elevation, string> = { up: 'uphill', flat: 'flat', down: 'downhill' };
+  return {
+    base: 'Base',
+    wind: windMph !== undefined ? `Wind · ${windMph} mph` : 'Wind',
+    temp: tempF !== undefined ? `Temp · ${tempF}°F` : 'Temp',
+    elevation: elevation ? `Elevation · ${ELEV[elevation]}` : 'Elevation',
+    strikeTrend: cur?.kind === 'approach' ? `Strike · ${cur.lie}, ${cur.confidence} confidence` : 'Strike',
+  };
+}

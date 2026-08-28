@@ -39,7 +39,7 @@ const MIN_SAMPLE = 3;
 const DOMINANCE = 0.6;
 
 /** Top key of a count record if its share ≥ DOMINANCE over ≥ MIN_SAMPLE total. */
-function dominantKey<K extends string>(counts: Record<K, number>): K | undefined {
+export function dominantKey<K extends string>(counts: Record<K, number>): K | undefined {
   const entries = Object.entries(counts) as [K, number][];
   const total = entries.reduce((sum, [, c]) => sum + c, 0);
   if (total < MIN_SAMPLE) return undefined;

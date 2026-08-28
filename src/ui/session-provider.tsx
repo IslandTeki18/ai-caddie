@@ -74,7 +74,7 @@ export function SessionProvider({
     let closed = false;
     let handle: { close: () => void } | undefined;
     (async () => {
-      const db = await createDb({ kind: 'op-sqlite', path: 'ai-caddie.db' });
+      const db = await createDb({ kind: 'expo-sqlite', path: 'ai-caddie.db' });
       handle = db;
       if (closed) return db.close();
       syncRepoRef.current = new SyncRepository(db.db);

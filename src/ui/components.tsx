@@ -4,12 +4,27 @@ import { Pressable, ScrollView, Text, TextInput, View, type TextInputProps } fro
 /** Placeholder color must be passed as a prop — NativeWind can't style RN placeholders. */
 const PLACEHOLDER = '#5E675F'; // fg-dim
 
-/** Dark scrollable page shell. Replaces the repeated `bg-white p-6` per screen. */
-export function Screen(props: { children: ReactNode }): ReactNode {
+/**
+ * Dark scrollable page shell. `footer` renders pinned below the scroll area
+ * (in-round action buttons stay reachable without scrolling).
+ */
+export function Screen(props: { children: ReactNode; footer?: ReactNode }): ReactNode {
   return (
-    <ScrollView className="flex-1 bg-ink" contentContainerClassName="p-6" keyboardShouldPersistTaps="handled">
+    <View className="flex-1 bg-ink">
+      <ScrollView className="flex-1" contentContainerClassName="p-5" keyboardShouldPersistTaps="handled">
+        {props.children}
+      </ScrollView>
+      {props.footer ? <View className="px-5 pb-[26px] pt-2">{props.footer}</View> : null}
+    </View>
+  );
+}
+
+/** 11px uppercase tracked label used above cards and values. */
+export function Eyebrow(props: { children: ReactNode; className?: string }): ReactNode {
+  return (
+    <Text className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted ${props.className ?? ''}`}>
       {props.children}
-    </ScrollView>
+    </Text>
   );
 }
 
@@ -48,17 +63,23 @@ export function Card(props: { title?: string; children: ReactNode }): ReactNode 
   );
 }
 
-/** Single-select segmented control shared by every option-picking screen. */
+/**
+ * Single-select segmented control shared by every option-picking screen.
+ * `row` lays options out as one equal-flex row (one thumb sweep) instead of
+ * wrapping chips; `large` raises the target from 44 to 52pt for in-round use.
+ */
 export function Segmented<T extends string>(props: {
   label?: string;
   value: T;
   options: readonly T[];
   onChange: (v: T) => void;
+  row?: boolean;
+  large?: boolean;
 }): ReactNode {
   return (
     <View className="mb-4">
-      {props.label ? <Text className="mb-1.5 text-sm font-medium text-fg-muted">{props.label}</Text> : null}
-      <View className="flex-row flex-wrap gap-2">
+      {props.label ? <Text className="mb-1.5 text-sm font-semibold text-fg-muted">{props.label}</Text> : null}
+      <View className={`flex-row gap-2 ${props.row ? '' : 'flex-wrap'}`}>
         {props.options.map((opt) => {
           const active = opt === props.value;
           return (
@@ -68,8 +89,9 @@ export function Segmented<T extends string>(props: {
               accessibilityLabel={props.label ? `${props.label}: ${opt}` : opt}
               accessibilityState={{ selected: active }}
               onPress={() => props.onChange(opt)}
+              style={({ pressed }) => (pressed ? { opacity: 0.85 } : null)}
               // min-h-11 ≈ 44pt Apple minimum tap target — logged mid-round with a glove on.
-              className={`min-h-11 min-w-11 items-center justify-center rounded-xl border px-3.5 py-2 ${active ? 'border-accent bg-accent' : 'border-line bg-surface'}`}
+              className={`items-center justify-center border px-3.5 py-2 ${props.large ? 'min-h-[52px] rounded-[14px]' : 'min-h-11 min-w-11 rounded-xl'} ${props.row ? 'flex-1' : ''} ${active ? 'border-accent bg-accent' : 'border-line bg-surface'}`}
             >
               <Text className={`text-base ${active ? 'font-semibold text-accent-ink' : 'text-fg-muted'}`}>{opt}</Text>
             </Pressable>
@@ -80,8 +102,19 @@ export function Segmented<T extends string>(props: {
   );
 }
 
-/** Labeled full-width primary action button. */
-export function PrimaryButton(props: { label: string; onPress: () => void; disabled?: boolean }): ReactNode {
+/**
+ * Labeled full-width action button. `outline` swaps the accent fill for a
+ * `surface` + `line` secondary; `large` is the 56–60pt in-round footer size.
+ */
+export function PrimaryButton(props: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  outline?: boolean;
+  large?: boolean;
+}): ReactNode {
+  const bg = props.disabled ? 'bg-surface-2' : props.outline ? 'border border-line bg-surface' : 'bg-accent';
+  const fg = props.disabled ? 'text-fg-dim' : props.outline ? 'font-bold text-fg' : 'font-extrabold text-accent-ink';
   return (
     <Pressable
       accessibilityRole="button"
@@ -90,11 +123,9 @@ export function PrimaryButton(props: { label: string; onPress: () => void; disab
       disabled={props.disabled}
       onPress={props.onPress}
       style={({ pressed }) => (pressed ? { opacity: 0.85 } : null)}
-      className={`mt-2 min-h-11 justify-center rounded-2xl px-4 py-3.5 ${props.disabled ? 'bg-surface-2' : 'bg-accent'}`}
+      className={`justify-center px-4 ${props.large ? 'min-h-[58px] rounded-[18px] py-3' : 'mt-2 min-h-11 rounded-2xl py-3.5'} ${bg}`}
     >
-      <Text className={`text-center text-base font-bold ${props.disabled ? 'text-fg-dim' : 'text-accent-ink'}`}>
-        {props.label}
-      </Text>
+      <Text className={`text-center ${props.large ? 'text-lg' : 'text-base'} font-bold ${fg}`}>{props.label}</Text>
     </Pressable>
   );
 }

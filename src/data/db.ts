@@ -8,12 +8,12 @@ import { schema } from './schema';
  *  - 'memory'   → better-sqlite3 (Node). Used by every vitest test. `path`
  *                 optional: omit for a private :memory: db, pass a file path to
  *                 prove durability across reopen.
- *  - 'op-sqlite'→ @op-engineering/op-sqlite (device, WAL on). The source of
- *                 truth on the course.
+ *  - 'expo-sqlite' → expo-sqlite (device, WAL on). The source of truth on the
+ *                 course; ships inside Expo Go.
  *
  * Both drivers are loaded via dynamic import() so the unselected one is never
  * resolved — a static `better-sqlite3` import breaks the RN bundle, and a static
- * op-sqlite import breaks Node/vitest (native bindings absent).
+ * expo-sqlite import breaks Node/vitest (native bindings absent).
  */
 
 const MIGRATIONS_FOLDER = './drizzle';
@@ -25,11 +25,11 @@ export interface DbHandle {
   close: () => void;
 }
 
-export type DbKind = 'memory' | 'op-sqlite';
+export type DbKind = 'memory' | 'expo-sqlite';
 
 export interface CreateDbOptions {
   kind: DbKind;
-  /** File path. For 'memory': omit for private in-RAM db. For 'op-sqlite': db name. */
+  /** File path. For 'memory': omit for private in-RAM db. For 'expo-sqlite': db name. */
   path?: string;
 }
 
@@ -46,26 +46,16 @@ export async function createDb(opts: CreateDbOptions): Promise<DbHandle> {
     return { db: db as CaddieDb, close: () => sqlite.close() };
   }
 
-  // op-sqlite (device). Not exercised by tests; native module only. Dynamic
-  // import keeps the native module and the .sql-bundling migrations file out of
-  // the Node/vitest resolution graph (the memory branch returns above).
-  const { open } = await import('@op-engineering/op-sqlite');
-  const { drizzle } = await import('drizzle-orm/op-sqlite');
-  const { migrate } = await import('drizzle-orm/op-sqlite/migrator');
+  // expo-sqlite (device). Bundled in Expo Go, so the app runs there without a
+  // custom dev client. Dynamic import keeps the native module and the
+  // .sql-bundling migrations file out of the Node/vitest resolution graph.
+  const { openDatabaseAsync } = await import('expo-sqlite');
+  const { drizzle } = await import('drizzle-orm/expo-sqlite');
+  const { migrate } = await import('drizzle-orm/expo-sqlite/migrator');
   const { default: migrations } = await import('../../drizzle/migrations');
-  const raw = open({ name: opts.path ?? 'ai-caddie.db' });
-  await raw.execute('PRAGMA journal_mode = WAL;');
-  await raw.execute('PRAGMA foreign_keys = ON;');
-  // op-sqlite ≥17 returns `{ rawRows }` from executeRaw, but drizzle 0.45's
-  // driver expects executeRawAsync to resolve to bare rows. session.values()
-  // depends on it — including the migrator's read of __drizzle_migrations, so
-  // without this shim every boot after the first re-runs migration 0000 into
-  // existing tables and crashes. Drop when drizzle supports the v17 shape.
-  const sqlite = Object.assign(Object.create(raw) as typeof raw, {
-    executeRawAsync: async (query: string, params?: unknown[]) =>
-      (await raw.executeRaw(query, params as never)).rawRows,
-  });
-  const db = drizzle(sqlite, { schema });
+  const raw = await openDatabaseAsync(opts.path ?? 'ai-caddie.db');
+  await raw.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+  const db = drizzle(raw, { schema });
   await migrate(db, migrations);
-  return { db: db as unknown as CaddieDb, close: () => raw.close() };
+  return { db: db as unknown as CaddieDb, close: () => raw.closeSync() };
 }

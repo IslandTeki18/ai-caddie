@@ -8,7 +8,7 @@ Layers are folders under `src/`. Import direction is enforced by an ESLint bound
 
 1. `src/core` — types, enums, units, zod schemas. No imports from elsewhere. Never imports React/SQLite.
 2. `src/engine` — pure decision logic. Imports `core` only. No React, SQLite, or I/O. Unit-testable in ms.
-3. `src/data` — op-sqlite + Drizzle schema and repository interfaces (the swap seam). Maps rows ↔ `core` types.
+3. `src/data` — expo-sqlite + Drizzle schema and repository interfaces (the swap seam). Maps rows ↔ `core` types.
 4. `src/sync` — Convex client + local↔cloud reconciliation. Imports `data`.
 5. `src/session` — round state machine. Imports `engine` + `data`.
 6. `app/` — expo-router screens. Imports `session` (+ `sync` for status).

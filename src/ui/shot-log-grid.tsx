@@ -1,13 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import type {
-  Contact,
-  Curve,
-  DistanceResult,
-  Quality,
-  ShotLog,
-  StartDirection,
-} from '@/core';
-import { PrimaryButton, Segmented } from '@/ui/components';
+import type { Contact, Curve, DistanceResult, Quality, ShotLog, StartDirection } from '@/core';
+import { Segmented } from '@/ui/components';
 
 const START: readonly StartDirection[] = ['left', 'onLine', 'right'];
 const CURVE: readonly Curve[] = ['hook', 'straight', 'fade', 'slice'];
@@ -15,8 +8,10 @@ const CONTACT: readonly Contact[] = ['thin', 'fat', 'center', 'toe', 'heel'];
 const DISTANCE: readonly DistanceResult[] = ['short', 'pinHigh', 'long'];
 const QUALITY: readonly Quality[] = ['good', 'neutral', 'poor'];
 
+export type ShotResult = Omit<ShotLog, 'timestamp'>;
+
 /** Neutral defaults: every dimension pre-selected so a full log commits in a single tap. */
-const DEFAULTS: Omit<ShotLog, 'timestamp'> = {
+export const DEFAULT_RESULT: ShotResult = {
   startDirection: 'onLine',
   curve: 'straight',
   contact: 'center',
@@ -25,30 +20,25 @@ const DEFAULTS: Omit<ShotLog, 'timestamp'> = {
 };
 
 /**
- * Shot Logging grid (step 25): five button rows shared by tee and approach,
- * pre-selected to neutral defaults so a full log is ≤5 taps. Presentational —
- * the owning screen handles dispatch + navigation via `onLog`.
+ * Shot Logging grid (2d): five full-width equal-flex rows shared by tee and
+ * approach, pre-selected to neutral defaults so a full log is ≤5 taps.
+ * Controlled + presentational — the owning screen holds the value and commits.
  */
-export function ShotLogGrid(props: {
-  onLog: (result: Omit<ShotLog, 'timestamp'>) => void;
-  disabled?: boolean;
-}): ReactNode {
-  const [result, setResult] = useState<Omit<ShotLog, 'timestamp'>>(DEFAULTS);
-  const set = <K extends keyof typeof result>(k: K, v: (typeof result)[K]) =>
-    setResult((r) => ({ ...r, [k]: v }));
-
+export function ShotLogGrid(props: { value: ShotResult; onChange: (r: ShotResult) => void }): ReactNode {
+  const set = <K extends keyof ShotResult>(k: K, v: ShotResult[K]) => props.onChange({ ...props.value, [k]: v });
+  const r = props.value;
   return (
     <>
-      <Segmented label="Start" value={result.startDirection} options={START} onChange={(v) => set('startDirection', v)} />
-      <Segmented label="Curve" value={result.curve} options={CURVE} onChange={(v) => set('curve', v)} />
-      <Segmented label="Contact" value={result.contact} options={CONTACT} onChange={(v) => set('contact', v)} />
-      <Segmented label="Distance" value={result.distance} options={DISTANCE} onChange={(v) => set('distance', v)} />
-      <Segmented label="Quality" value={result.quality} options={QUALITY} onChange={(v) => set('quality', v)} />
-      <PrimaryButton
-        label={props.disabled ? 'Logged' : 'Log shot'}
-        onPress={() => props.onLog(result)}
-        disabled={props.disabled}
-      />
+      <Segmented row large label="Start" value={r.startDirection} options={START} onChange={(v) => set('startDirection', v)} />
+      <Segmented row large label="Curve" value={r.curve} options={CURVE} onChange={(v) => set('curve', v)} />
+      <Segmented row large label="Contact" value={r.contact} options={CONTACT} onChange={(v) => set('contact', v)} />
+      <Segmented row large label="Distance" value={r.distance} options={DISTANCE} onChange={(v) => set('distance', v)} />
+      <Segmented row large label="Quality" value={r.quality} options={QUALITY} onChange={(v) => set('quality', v)} />
     </>
   );
+}
+
+/** Local state helper so a screen can own the grid value with one line. */
+export function useShotResult(): [ShotResult, (r: ShotResult) => void] {
+  return useState<ShotResult>(DEFAULT_RESULT);
 }

@@ -2,6 +2,7 @@ import type { Recommendation, Shot } from '@/core';
 import {
   recommend,
   adaptDispersion,
+  dominantKey,
   type DispersionEllipse,
   type MissPattern,
 } from '@/engine';
@@ -73,4 +74,30 @@ export function currentRecommendation(state: SessionState): Recommendation | und
     },
     cue,
   });
+}
+
+export interface StartPattern {
+  direction: 'left' | 'right';
+  count: number;
+  total: number;
+}
+
+/** Last `window` shots of the round, oldest first. */
+export function recentShots(shots: readonly Shot[], window = 4): readonly Shot[] {
+  return shots.slice(-window);
+}
+
+/**
+ * Dominant start side over the most recent shots (any kind) — the live miss
+ * pattern the call screen explains and the log screen reflects back. Undefined
+ * unless one side clears the analytics threshold (≥3 shots, ≥60%), and never
+ * for `onLine` (there is nothing to absorb).
+ */
+export function recentStartPattern(shots: readonly Shot[], window = 4): StartPattern | undefined {
+  const recent = recentShots(shots, window);
+  const counts = { left: 0, onLine: 0, right: 0 };
+  for (const s of recent) counts[s.startDirection]++;
+  const direction = dominantKey(counts);
+  if (!direction || direction === 'onLine') return undefined;
+  return { direction, count: counts[direction], total: recent.length };
 }

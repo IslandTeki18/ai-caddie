@@ -1,43 +1,31 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { ShotLogGrid } from './shot-log-grid';
+import { useState } from 'react';
+import { ShotLogGrid, DEFAULT_RESULT, type ShotResult } from './shot-log-grid';
+
+function Harness(props: { onChange: (r: ShotResult) => void }) {
+  const [v, setV] = useState(DEFAULT_RESULT);
+  return <ShotLogGrid value={v} onChange={(r) => { setV(r); props.onChange(r); }} />;
+}
 
 describe('ShotLogGrid (≤5-tap logging)', () => {
   afterEach(cleanup);
 
-  it('logs a full, complete result in ≤5 taps', () => {
-    const onLog = vi.fn();
-    render(<ShotLogGrid onLog={onLog} />);
+  it('reaches a full result in 4 field taps, untouched dimensions keep their default', () => {
+    let last: ShotResult = DEFAULT_RESULT;
+    render(<Harness onChange={(r) => (last = r)} />);
 
-    // 4 field changes + 1 commit = 5 taps.
-    fireEvent.click(screen.getByText('left')); // startDirection
-    fireEvent.click(screen.getByText('fade')); // curve
-    fireEvent.click(screen.getByText('thin')); // contact
-    fireEvent.click(screen.getByText('long')); // distance
-    fireEvent.click(screen.getByText('Log shot')); // commit
+    fireEvent.click(screen.getByText('left'));
+    fireEvent.click(screen.getByText('fade'));
+    fireEvent.click(screen.getByText('thin'));
+    fireEvent.click(screen.getByText('long'));
 
-    expect(onLog).toHaveBeenCalledTimes(1);
-    expect(onLog).toHaveBeenCalledWith({
-      startDirection: 'left',
-      curve: 'fade',
-      contact: 'thin',
-      distance: 'long',
-      quality: 'good', // untouched default — every dimension is still present
-    });
+    expect(last).toEqual({ startDirection: 'left', curve: 'fade', contact: 'thin', distance: 'long', quality: 'good' });
   });
 
-  it('logs a complete result from defaults in a single tap', () => {
-    const onLog = vi.fn();
-    render(<ShotLogGrid onLog={onLog} />);
-
-    fireEvent.click(screen.getByText('Log shot'));
-
-    expect(onLog).toHaveBeenCalledWith({
-      startDirection: 'onLine',
-      curve: 'straight',
-      contact: 'center',
-      distance: 'pinHigh',
-      quality: 'good',
+  it('defaults form a complete result with zero taps', () => {
+    expect(DEFAULT_RESULT).toEqual({
+      startDirection: 'onLine', curve: 'straight', contact: 'center', distance: 'pinHigh', quality: 'good',
     });
   });
 });

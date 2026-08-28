@@ -11,7 +11,7 @@ import type {
 
 /**
  * Local SQLite schema (dialect-agnostic drizzle-orm/sqlite-core), shared by both
- * the op-sqlite (device) and better-sqlite3 (test) drivers. Mirrors SPEC §8.
+ * the expo-sqlite (device) and better-sqlite3 (test) drivers. Mirrors SPEC §8.
  *
  * Every table carries a stable `id` (caller-generated, survives sync) and
  * `updatedAt` (epoch ms) for last-write-wins reconciliation. Fuzzy nested data
